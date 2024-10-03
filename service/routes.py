@@ -15,15 +15,15 @@
 ######################################################################
 
 """
-YourResourceModel Service
+Customer Service
 
 This service implements a REST API that allows you to Create, Read, Update
-and Delete YourResourceModel
+and Delete Customer
 """
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.models import YourResourceModel
+from service.models import Customer
 from service.common import status  # HTTP Status Codes
 
 
@@ -44,3 +44,55 @@ def index():
 ######################################################################
 
 # Todo: Place your REST API code here ...
+
+######################################################################
+# UPDATE AN EXISTING CUSTOMER
+######################################################################
+@app.route("/customers/<int:customer_id>", methods=["PUT"])
+def update_customers(customer_id):
+    """
+    Update a Customer
+
+    This endpoint will update a Customer based the body that is posted
+    """
+    app.logger.info("Request to Update a customer with id [%s]", customer_id)
+    check_content_type("application/json")
+
+    # Attempt to find the Customer and abort if not found
+    customer = Customer.find(customer_id)
+    if not customer:
+        abort(status.HTTP_404_NOT_FOUND, f"Customer with id '{customer_id}' was not found.")
+
+    # Update the Customer with the new data
+    data = request.get_json()
+    app.logger.info("Processing: %s", data)
+    customer.deserialize(data)
+
+    # Save the updates to the database
+    customer.update()
+
+    app.logger.info("Customer with ID: %d updated.", customer.id)
+    return jsonify(customer.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+#  U T I L I T Y   F U N C T I O N S
+######################################################################
+
+def check_content_type(content_type) -> None:
+    """Checks that the media type is correct"""
+    if "Content-Type" not in request.headers:
+        app.logger.error("No Content-Type specified.")
+        abort(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            f"Content-Type must be {content_type}",
+        )
+
+    if request.headers["Content-Type"] == content_type:
+        return
+
+    app.logger.error("Invalid Content-Type: %s", request.headers["Content-Type"])
+    abort(
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+        f"Content-Type must be {content_type}",
+    )
