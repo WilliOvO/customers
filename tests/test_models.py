@@ -65,15 +65,17 @@ class TestCustomer(TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
-    def test_example_replace_this(self):
+    def test_create_account(self):
         """It should create a Customer"""
-        # Todo: Remove this test case example
-        resource = CustomerFactory()
-        resource.create()
-        self.assertIsNotNone(resource.id)
+        account = CustomerFactory()
+        account.create()
+        self.assertIsNotNone(account.id)
         found = Customer.all()
         self.assertEqual(len(found), 1)
-        data = Customer.find(resource.id)
-        self.assertEqual(data.name, resource.name)
-
-    # Todo: Add your test cases here...
+        data = Customer.find(account.id)
+        self.assertEqual(data.id, account.id)
+        self.assertEqual(data.name, account.name)
+        self.assertEqual(data.password, account.password)
+        self.assertEqual(data.address, account.address)
+        self.assertEqual(data.email, account.email)
+        self.assertEqual(data.active, account.active)

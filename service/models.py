@@ -25,10 +25,12 @@ class Customer(db.Model):
     ##################################################
     # Table Schema
     ##################################################
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(63))
-
-    # Todo: Place the rest of your schema here...
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
+    name = db.Column(db.String(63), nullable=False)
+    password = db.Column(db.String(63), nullable=False)
+    email = db.Column(db.String(63), nullable=False)
+    address = db.Column(db.String(63), nullable=True)
+    active = db.Column(db.Boolean(), nullable=False, default=False)
 
     def __repr__(self):
         return f"<Customer {self.name} id=[{self.id}]>"
@@ -72,7 +74,14 @@ class Customer(db.Model):
 
     def serialize(self):
         """Serializes a Customer into a dictionary"""
-        return {"id": self.id, "name": self.name}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "password": self.password,
+            "email": self.email,
+            "address": self.address,
+            "active": self.active,
+        }
 
     def deserialize(self, data):
         """
@@ -82,7 +91,13 @@ class Customer(db.Model):
             data (dict): A dictionary containing the resource data
         """
         try:
+            self.id = data["id"]
             self.name = data["name"]
+            self.password = data["password"]
+            self.email = data["email"]
+            self.address = data["address"]
+            self.active = data["active"]
+
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
