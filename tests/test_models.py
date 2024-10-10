@@ -15,7 +15,7 @@
 ######################################################################
 
 """
-Test cases for Pet Model
+Test cases for Customer Model
 """
 
 # pylint: disable=duplicate-code
@@ -97,3 +97,31 @@ class TestCustomer(TestCase):
         self.assertEqual(found_customer.email, customer.email)
         self.assertEqual(found_customer.address, customer.address)
         self.assertEqual(found_customer.active, customer.active)
+
+    def test_update_a_customer(self):
+        """It should Update a Customer"""
+        customer = CustomerFactory()
+        logging.debug(customer)
+        customer.id = None
+        customer.create()
+        logging.debug(customer)
+        self.assertIsNotNone(customer.id)
+        # Change it an save it
+        customer.address = "123 Main St, Springfield, IL 62701"
+        original_id = customer.id
+        customer.update()
+        self.assertEqual(customer.id, original_id)
+        self.assertEqual(customer.address, "123 Main St, Springfield, IL 62701")
+        # Fetch it back and make sure the id hasn't changed
+        # but the data did change
+        customers = Customer.all()
+        self.assertEqual(len(customers), 1)
+        self.assertEqual(customers[0].id, original_id)
+        self.assertEqual(customers[0].address, "123 Main St, Springfield, IL 62701")
+
+    def test_update_no_id(self):
+        """It should not Update a Customer with no id"""
+        customer = CustomerFactory()
+        logging.debug(customer)
+        customer.id = None
+        self.assertRaises(DataValidationError, customer.update)
