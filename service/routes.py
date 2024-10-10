@@ -69,7 +69,6 @@ def create_customer():
     # Return the location of the new Customer
 
     location_url = url_for("get_customer", customer_id=customer.id, _external=True)
-    location_url = "/"
 
     return (
         jsonify(customer.serialize()),
