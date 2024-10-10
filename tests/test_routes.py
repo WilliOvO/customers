@@ -96,26 +96,6 @@ class TestCustomerService(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     # Todo: Add your test cases here...
-
-    # ----------------------------------------------------------
-    # TEST UPDATE
-    # ----------------------------------------------------------
-    def test_update_customer(self):
-        """It should Update an existing Customer"""
-        # create a customer to update
-        test_customer = CustomerFactory()
-        response = self.client.post(BASE_URL, json=test_customer.serialize())
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        # update the customer
-        new_customer = response.get_json()
-        logging.debug(new_customer)
-        """Not sure what to update here, use "name" first"""
-        new_customer["name"] = "unknown"
-        response = self.client.put(f"{BASE_URL}/{new_customer['id']}", json=new_customer)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        updated_customer = response.get_json()
-        self.assertEqual(updated_customer["name"], "unknown")
     def test_create_customer(self):
         """It should Create a new Customer"""
         test_customer = CustomerFactory()
@@ -171,3 +151,22 @@ class TestCustomerService(TestCase):
         data = response.get_json()
         logging.debug("Response data = %s", data)
         self.assertIn("was not found", data["message"])
+
+    # ----------------------------------------------------------
+    # TEST UPDATE
+    # ----------------------------------------------------------
+    def test_update_customer(self):
+        """It should Update an existing Customer"""
+        # create a customer to update
+        test_customer = CustomerFactory()
+        response = self.client.post(BASE_URL, json=test_customer.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # update the customer
+        new_customer = response.get_json()
+        logging.debug(new_customer)
+        new_customer["address"] = "unknown"
+        response = self.client.put(f"{BASE_URL}/{new_customer['id']}", json=new_customer)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated_customer = response.get_json()
+        self.assertEqual(updated_customer["address"], "unknown")
