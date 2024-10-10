@@ -53,6 +53,8 @@ class Customer(db.Model):
         """
         Updates a Customer to the database
         """
+        if not self.id:
+            raise DataValidationError("Customer ID cannot be None")
         logger.info("Saving %s", self.name)
         try:
             db.session.commit()
