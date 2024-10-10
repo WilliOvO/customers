@@ -38,7 +38,7 @@ BASE_URL = "/customers"
 #  T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
-class TestYourResourceService(TestCase):
+class TestCustomerService(TestCase):
     """REST API Server Tests"""
 
     @classmethod
@@ -50,6 +50,25 @@ class TestYourResourceService(TestCase):
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         app.app_context().push()
+
+    ############################################################
+    # Utility function to bulk create customers
+    ############################################################
+    def _create_customers(self, count: int = 1) -> list:
+        """Factory method to create customers in bulk"""
+        customers = []
+        for _ in range(count):
+            test_customer = CustomerFactory()
+            response = self.client.post(BASE_URL, json=test_customer.serialize())
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_201_CREATED,
+                "Could not create test customer",
+            )
+            new_customer = response.get_json()
+            test_customer.id = new_customer["id"]
+            customers.append(test_customer)
+        return customers
 
     @classmethod
     def tearDownClass(cls):
@@ -95,14 +114,38 @@ class TestYourResourceService(TestCase):
         self.assertEqual(new_customer["address"], test_customer.address)
         self.assertEqual(new_customer["active"], test_customer.active)
 
-        # Todo: Uncomment this code when get_customer is implemented
-        # Check that the location header was correct
-        # response = self.client.get(location)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # new_customer = response.get_json()
-        # self.assertEqual(new_customer["id"], test_customer.id)
-        # self.assertEqual(new_customer["name"], test_customer.name)
-        # self.assertEqual(new_customer["password"], test_customer.password)
-        # self.assertEqual(new_customer["email"], test_customer.email)
-        # self.assertEqual(new_customer["address"], test_customer.address)
-        # self.assertEqual(new_customer["active"], test_customer.active)
+        response = self.client.get(location)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        new_customer = response.get_json()
+        self.assertEqual(new_customer["id"], test_customer.id)
+        self.assertEqual(new_customer["name"], test_customer.name)
+        self.assertEqual(new_customer["password"], test_customer.password)
+        self.assertEqual(new_customer["email"], test_customer.email)
+        self.assertEqual(new_customer["address"], test_customer.address)
+        self.assertEqual(new_customer["active"], test_customer.active)
+
+    # ----------------------------------------------------------
+    # TEST READ
+    # ----------------------------------------------------------
+    def test_get_customer(self):
+        """It should Get a single Customer"""
+        # get the id of a customer
+
+        test_customer = self._create_customers(1)[0]
+        response = self.client.get(f"{BASE_URL}/{test_customer.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["id"], test_customer.id)
+        self.assertEqual(data["name"], test_customer.name)
+        self.assertEqual(data["password"], test_customer.password)
+        self.assertEqual(data["email"], test_customer.email)
+        self.assertEqual(data["address"], test_customer.address)
+        self.assertEqual(data["active"], test_customer.active)
+
+    def test_get_customer_not_found(self):
+        """It should not Get a Customer thats not found"""
+        response = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        logging.debug("Response data = %s", data)
+        self.assertIn("was not found", data["message"])

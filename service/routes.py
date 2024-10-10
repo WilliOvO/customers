@@ -67,8 +67,8 @@ def create_customer():
     app.logger.info("Customer with new id [%s] saved!", customer.id)
 
     # Return the location of the new Customer
-    # Todo: uncomment this code when get_customer is implemented
-    # location_url = url_for("get_customer", customer_id=customer.id, _external=True)
+
+    location_url = url_for("get_customer", customer_id=customer.id, _external=True)
     location_url = "/"
 
     return (
@@ -76,6 +76,30 @@ def create_customer():
         status.HTTP_201_CREATED,
         {"Location": location_url},
     )
+
+
+######################################################################
+# READ A Customer
+######################################################################
+@app.route("/customers/<int:customer_id>", methods=["GET"])
+def get_customer(customer_id):
+    """
+    Retrieve a single Customer
+
+    This endpoint will return a Customer based on it's id
+    """
+    app.logger.info("Request to Retrieve a customer with id [%s]", customer_id)
+
+    # Attempt to find the Customer and abort if not found
+    customer = Customer.find(customer_id)
+    if not customer:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Customer with id '{customer_id}' was not found.",
+        )
+
+    app.logger.info("Returning customer: %s", customer.name)
+    return jsonify(customer.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
