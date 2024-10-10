@@ -45,6 +45,7 @@ def index():
 
 # Todo: Place your REST API code here ...
 
+
 ######################################################################
 # CREATE A NEW CUSTOMER
 ######################################################################
@@ -118,7 +119,10 @@ def update_customers(customer_id):
     # Attempt to find the Customer and abort if not found
     customer = Customer.find(customer_id)
     if not customer:
-        abort(status.HTTP_404_NOT_FOUND, f"Customer with id '{customer_id}' was not found.")
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Customer with id '{customer_id}' was not found.",
+        )
 
     # Update the Customer with the new data
     data = request.get_json()
