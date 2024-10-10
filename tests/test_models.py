@@ -30,6 +30,8 @@ DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
 
+BASE_URL = "/customers"
+
 
 ######################################################################
 #  Customer   M O D E L   T E S T   C A S E S
@@ -65,17 +67,33 @@ class TestCustomer(TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
-    def test_create_account(self):
+    def test_create_customer(self):
         """It should create a Customer"""
-        account = CustomerFactory()
-        account.create()
-        self.assertIsNotNone(account.id)
+        customer = CustomerFactory()
+        customer.create()
+        self.assertIsNotNone(customer.id)
         found = Customer.all()
         self.assertEqual(len(found), 1)
-        data = Customer.find(account.id)
-        self.assertEqual(data.id, account.id)
-        self.assertEqual(data.name, account.name)
-        self.assertEqual(data.password, account.password)
-        self.assertEqual(data.address, account.address)
-        self.assertEqual(data.email, account.email)
-        self.assertEqual(data.active, account.active)
+        data = Customer.find(customer.id)
+        self.assertEqual(data.id, customer.id)
+        self.assertEqual(data.name, customer.name)
+        self.assertEqual(data.password, customer.password)
+        self.assertEqual(data.address, customer.address)
+        self.assertEqual(data.email, customer.email)
+        self.assertEqual(data.active, customer.active)
+
+    def test_read_a_customer(self):
+        """It should Read a Customer"""
+        customer = CustomerFactory()
+        logging.debug(customer)
+        customer.id = None
+        customer.create()
+        self.assertIsNotNone(customer.id)
+        # Fetch it back
+        found_customer = Customer.find(customer.id)
+        self.assertEqual(found_customer.id, customer.id)
+        self.assertEqual(found_customer.name, customer.name)
+        self.assertEqual(found_customer.password, customer.password)
+        self.assertEqual(found_customer.email, customer.email)
+        self.assertEqual(found_customer.address, customer.address)
+        self.assertEqual(found_customer.active, customer.active)

@@ -64,14 +64,61 @@ def update_customers(customer_id):
         abort(status.HTTP_404_NOT_FOUND, f"Customer with id '{customer_id}' was not found.")
 
     # Update the Customer with the new data
+
+######################################################################
+# CREATE A NEW CUSTOMER
+######################################################################
+@app.route("/customers", methods=["POST"])
+def create_customer():
+    """
+    Create a Customer
+    This endpoint will create a Customer based the data in the body that is posted
+    """
+    app.logger.info("Request to Create a Customer...")
+    check_content_type("application/json")
+
+    customer = Customer()
+    # Get the data from the request and deserialize it
     data = request.get_json()
     app.logger.info("Processing: %s", data)
     customer.deserialize(data)
 
-    # Save the updates to the database
-    customer.update()
+    # Save the new Customer to the database
+    customer.create()
+    app.logger.info("Customer with new id [%s] saved!", customer.id)
 
-    app.logger.info("Customer with ID: %d updated.", customer.id)
+    # Return the location of the new Customer
+
+    location_url = url_for("get_customer", customer_id=customer.id, _external=True)
+
+    return (
+        jsonify(customer.serialize()),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
+
+
+######################################################################
+# READ A Customer
+######################################################################
+@app.route("/customers/<int:customer_id>", methods=["GET"])
+def get_customer(customer_id):
+    """
+    Retrieve a single Customer
+
+    This endpoint will return a Customer based on it's id
+    """
+    app.logger.info("Request to Retrieve a customer with id [%s]", customer_id)
+
+    # Attempt to find the Customer and abort if not found
+    customer = Customer.find(customer_id)
+    if not customer:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Customer with id '{customer_id}' was not found.",
+        )
+
+    app.logger.info("Returning customer: %s", customer.name)
     return jsonify(customer.serialize()), status.HTTP_200_OK
 
 
@@ -79,6 +126,10 @@ def update_customers(customer_id):
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
 
+
+######################################################################
+# Checks the ContentType of a request
+######################################################################
 def check_content_type(content_type) -> None:
     """Checks that the media type is correct"""
     if "Content-Type" not in request.headers:

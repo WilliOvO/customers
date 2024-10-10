@@ -40,7 +40,7 @@ class Customer(db.Model):
         Creates a Customer to the database
         """
         logger.info("Creating %s", self.name)
-        self.id = None  # pylint: disable=invalid-name
+        # self.id = None  # pylint: disable=invalid-name
         try:
             db.session.add(self)
             db.session.commit()
