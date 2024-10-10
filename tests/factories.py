@@ -21,5 +21,3 @@ class CustomerFactory(factory.Factory):
     email = factory.Faker("email")
     address = factory.Faker("address")
     active = FuzzyChoice(choices=[True, False])
-
-    # Todo: Add your other attributes here...

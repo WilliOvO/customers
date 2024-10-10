@@ -25,10 +25,13 @@ from unittest import TestCase
 from wsgi import app
 from service.common import status
 from service.models import db, Customer
+from .factories import CustomerFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
+
+BASE_URL = "/customers"
 
 
 ######################################################################
@@ -72,4 +75,34 @@ class TestYourResourceService(TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    # Todo: Add your test cases here...
+    def test_create_customer(self):
+        """It should Create a new Customer"""
+        test_customer = CustomerFactory()
+        logging.debug("Test Customer: %s", test_customer.serialize())
+        response = self.client.post(BASE_URL, json=test_customer.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Make sure location header is set
+        location = response.headers.get("Location", None)
+        self.assertIsNotNone(location)
+
+        # Check the data is correct
+        new_customer = response.get_json()
+        self.assertEqual(new_customer["id"], test_customer.id)
+        self.assertEqual(new_customer["name"], test_customer.name)
+        self.assertEqual(new_customer["password"], test_customer.password)
+        self.assertEqual(new_customer["email"], test_customer.email)
+        self.assertEqual(new_customer["address"], test_customer.address)
+        self.assertEqual(new_customer["active"], test_customer.active)
+
+        # Todo: Uncomment this code when get_customer is implemented
+        # Check that the location header was correct
+        # response = self.client.get(location)
+        # self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # new_customer = response.get_json()
+        # self.assertEqual(new_customer["id"], test_customer.id)
+        # self.assertEqual(new_customer["name"], test_customer.name)
+        # self.assertEqual(new_customer["password"], test_customer.password)
+        # self.assertEqual(new_customer["email"], test_customer.email)
+        # self.assertEqual(new_customer["address"], test_customer.address)
+        # self.assertEqual(new_customer["active"], test_customer.active)
