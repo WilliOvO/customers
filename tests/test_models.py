@@ -64,7 +64,7 @@ class TestCustomer(TestCase):
         db.session.remove()
 
     ######################################################################
-    #  T E S T   C A S E S
+    # C U S T O M E R   T E S T   C A S E S
     ######################################################################
 
     def test_create_customer(self):
@@ -125,3 +125,15 @@ class TestCustomer(TestCase):
         logging.debug(customer)
         customer.id = None
         self.assertRaises(DataValidationError, customer.update)
+
+    def test_list_all_customers(self):
+        """It should List all Customers in the database"""
+        customers = Customer.all()
+        self.assertEqual(customers, [])
+        # Create 5 customers
+        for _ in range(5):
+            customer = CustomerFactory()
+            customer.create()
+        # See if we get back 5 customers
+        customers = Customer.all()
+        self.assertEqual(len(customers), 5)
