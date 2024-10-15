@@ -32,8 +32,6 @@ DATABASE_URI = os.getenv(
 )
 BASE_URL = "/customers"
 
-BASE_URL = "/customers"
-
 
 ######################################################################
 #  T E S T   C A S E S
@@ -95,7 +93,47 @@ class TestCustomerService(TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    # Todo: Add your test cases here...
+    # ----------------------------------------------------------
+    # TEST LIST
+    # ----------------------------------------------------------
+    def test_get_customer_list(self):
+        """It should Get a list of Customers"""
+        self._create_customers(5)
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 5)
+
+    # ----------------------------------------------------------
+    # TEST READ
+    # ----------------------------------------------------------
+    def test_get_customer(self):
+        """It should Get a single Customer"""
+        # get the id of a customer
+
+        test_customer = self._create_customers(1)[0]
+        response = self.client.get(f"{BASE_URL}/{test_customer.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["id"], test_customer.id)
+        self.assertEqual(data["name"], test_customer.name)
+        self.assertEqual(data["password"], test_customer.password)
+        self.assertEqual(data["email"], test_customer.email)
+        self.assertEqual(data["address"], test_customer.address)
+        self.assertEqual(data["active"], test_customer.active)
+
+    def test_get_customer_not_found(self):
+        """It should not Get a Customer thats not found"""
+        response = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        logging.debug("Response data = %s", data)
+        self.assertIn("was not found", data["message"])
+
+    # ----------------------------------------------------------
+    # TEST CREATE
+    # ----------------------------------------------------------
+
     def test_create_customer(self):
         """It should Create a new Customer"""
         test_customer = CustomerFactory()
@@ -125,32 +163,6 @@ class TestCustomerService(TestCase):
         self.assertEqual(new_customer["email"], test_customer.email)
         self.assertEqual(new_customer["address"], test_customer.address)
         self.assertEqual(new_customer["active"], test_customer.active)
-
-    # ----------------------------------------------------------
-    # TEST READ
-    # ----------------------------------------------------------
-    def test_get_customer(self):
-        """It should Get a single Customer"""
-        # get the id of a customer
-
-        test_customer = self._create_customers(1)[0]
-        response = self.client.get(f"{BASE_URL}/{test_customer.id}")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.get_json()
-        self.assertEqual(data["id"], test_customer.id)
-        self.assertEqual(data["name"], test_customer.name)
-        self.assertEqual(data["password"], test_customer.password)
-        self.assertEqual(data["email"], test_customer.email)
-        self.assertEqual(data["address"], test_customer.address)
-        self.assertEqual(data["active"], test_customer.active)
-
-    def test_get_customer_not_found(self):
-        """It should not Get a Customer thats not found"""
-        response = self.client.get(f"{BASE_URL}/0")
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        data = response.get_json()
-        logging.debug("Response data = %s", data)
-        self.assertIn("was not found", data["message"])
 
     # ----------------------------------------------------------
     # TEST UPDATE

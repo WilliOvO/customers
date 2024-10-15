@@ -45,6 +45,50 @@ def index():
 
 # Todo: Place your REST API code here ...
 
+######################################################################
+# LIST ALL CUSTOMERS
+######################################################################
+
+@app.route("/customers", methods=["GET"])
+def list_customers():
+    """Returns all of the customers"""
+    app.logger.info("Request for customer list")
+
+    customers = []
+
+    # Parse any arguments from the query string
+    customer_id = request.args.get("customer")
+    name = request.args.get("name")
+    email = request.args.get("email")
+    address = request.args.get("address")
+    active = request.args.get("active")
+
+    if customer_id:
+        app.logger.info("Find by id: %s", customer_id)
+        customers = Customer.find_by_id(customer_id)
+    elif name:
+        app.logger.info("Find by name: %s", name)
+        customers = Customer.find_by_name(name)
+    elif email:
+        app.logger.info("Find by email: %s", email)
+        customers = Customer.find_by_email(email)
+    elif address:
+        app.logger.info("Find by address: %s", address)
+        customers = Customer.find_by_address(address)
+    elif active is not None:
+        app.logger.info("Find by active: %s", active)
+        # create bool
+        if active.lower() == "true": active_value = True
+        elif active.lower() == "false": active_value = False
+        else: abort(400, description="Invalid value")
+        customers = Customer.find_by_active(active_value)  
+    else:
+        app.logger.info("Find all")
+        customers = Customer.all()
+
+    results = [customer.serialize() for customer in customers]
+    app.logger.info("Returning %d customers", len(results))
+    return jsonify(results), status.HTTP_200_OK
 
 ######################################################################
 # CREATE A NEW CUSTOMER
@@ -134,6 +178,7 @@ def update_customers(customer_id):
 
     app.logger.info("Customer with ID: %d updated.", customer.id)
     return jsonify(customer.serialize()), status.HTTP_200_OK
+
 
 
 ######################################################################
