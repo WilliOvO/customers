@@ -1,62 +1,149 @@
-# NYU DevOps Project Template
+# NYU DevOps Project 
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
 
-This is a skeleton you can use to start your projects
+## Introduction
 
-## Overview
+We are asked to develop the backend for an eCommerce website as a collection of RESTful services for a client. We are responsible for implementing the customer service
+The customer service is a representation of the customer accounts of the eCommerce site. At a minimum, it should have the customer's first and last name, along with a customer id that can be used as a key to uniquely identify them. It may even have a user ID and password. It's up to you. Customers also have at least one address, which can be just a long string.
 
-This project template contains starter code for your class project. The `/service` folder contains your `models.py` file for your model and a `routes.py` file for your service. The `/tests` folder has test case starter code for testing the model and the service separately. All you need to do is add your functionality. You can use the [lab-flask-tdd](https://github.com/nyu-devops/lab-flask-tdd) for code examples to copy from.
+## Prerequisite Software Installation
 
-## Automatic Setup
+This lab uses Docker and Visual Studio Code with the Remote Containers extension to provide a consistent repeatable disposable development environment for all of the labs in this course.
 
-The best way to use this repo is to start your own repo using it as a git template. To do this just press the green **Use this template** button in GitHub and this will become the source for your repository.
+You will need the following software installed:
 
-## Manual Setup
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- [Visual Studio Code](https://code.visualstudio.com)
+- [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension from the Visual Studio Marketplace
 
-You can also clone this repository and then copy and paste the starter code into your project repo folder on your local computer. Be careful not to copy over your own `README.md` file so be selective in what you copy.
+All of these can be installed manually by clicking on the links above or you can use a package manager like **Homebrew** on Mac of **Chocolatey** on Windows.
 
-There are 4 hidden files that you will need to copy manually if you use the Mac Finder or Windows Explorer to copy files from this folder into your repo folder.
+Alternately, you can use [Vagrant](https://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/) to create a consistent development environment in a virtual machine (VM). 
 
-These should be copied using a bash shell as follows:
+You can read more about creating these environments in my article: [Creating Reproducible Development Environments](https://johnrofrano.medium.com/creating-reproducible-development-environments-fac8d6471f35)
+
+## Bring up the development environment
+
+To bring up the development environment you should clone this repo, change into the repo directory:
 
 ```bash
-    cp .gitignore  ../<your_repo_folder>/
-    cp .flaskenv ../<your_repo_folder>/
-    cp .gitattributes ../<your_repo_folder>/
+git clone git@github.com:CSCI-GA-2820-FA24-001/customers.git
+cd customers
 ```
 
-## Contents
+Depending on which development environment you created, pick from the following:
 
-The project contains the following:
+### Start developing with Visual Studio Code and Docker
 
-```text
-.gitignore          - this will ignore vagrant and other metadata files
-.flaskenv           - Environment variables to configure Flask
-.gitattributes      - File to gix Windows CRLF issues
-.devcontainers/     - Folder with support for VSCode Remote Containers
-dot-env-example     - copy to .env to use environment variables
-pyproject.toml      - Poetry list of Python libraries required by your code
+Open Visual Studio Code using the `code .` command. VS Code will prompt you to reopen in a container and you should say **yes**. This will take a while as it builds the Docker image and creates a container from it to develop in.
 
-service/                   - service python package
-├── __init__.py            - package initializer
-├── config.py              - configuration parameters
-├── models.py              - module with business models
-├── routes.py              - module with service routes
-└── common                 - common code package
-    ├── cli_commands.py    - Flask command to recreate all tables
-    ├── error_handlers.py  - HTTP error handling code
-    ├── log_handlers.py    - logging setup code
-    └── status.py          - HTTP status constants
-
-tests/                     - test cases package
-├── __init__.py            - package initializer
-├── factories.py           - Factory for testing with fake objects
-├── test_cli_commands.py   - test suite for the CLI
-├── test_models.py         - test suite for business models
-└── test_routes.py         - test suite for service routes
+```bash
+code .
 ```
+
+Note that there is a period `.` after the `code` command. This tells Visual Studio Code to open the editor and load the current folder of files.
+
+Once the environment is loaded you should be placed at a `bash` prompt in the `/app` folder inside of the development container. This folder is mounted to the current working directory of your repository on your computer. This means that any file you edit while inside of the `/app` folder in the container is actually being edited on your computer. You can then commit your changes to `git` from either inside or outside of the container.
+
+### Using Vagrant and VirtualBox
+
+Bring up the virtual machine using Vagrant.
+
+```shell
+vagrant up
+vagrant ssh
+cd /vagrant
+```
+
+This will place you in the virtual machine in the `/vagrant` folder which has been shared with your computer so that your source files can be edited outside of the VM and run inside of the VM.
+
+## Running the tests
+
+As developers we always want to run the tests before we change any code. That way we know if we broke the code or if someone before us did. Always run the test cases first!
+
+Run the unit tests using `pytest`
+
+```shell
+make test
+```
+
+PyTest is configured via the included `setup.cfg` file to automatically include the `--pspec` flag so that red-green-refactor is meaningful. If you are in a command shell that supports colors, passing tests will be green while failing tests will be red.
+
+PyTest is also configured to automatically run the `coverage` tool and you should see a percentage-of-coverage report at the end of your tests. If you want to see what lines of code were not tested use:
+
+```shell
+coverage report -m
+```
+
+This is particularly useful because it reports the line numbers for the code that have not been covered so you know which lines you want to target with new test cases to get higher code coverage.
+
+You can also manually run `pytest` with `coverage` (but settings in `pyporojrct.toml` do this already)
+
+```shell
+$ pytest --pspec --cov=service --cov-fail-under=95
+```
+
+Try and get as close to 100% coverage as you can.
+
+It's also a good idea to make sure that your Python code follows the PEP8 standard. Both `flake8` and `pylint` have been included in the `pyproject.toml` file so that you can check if your code is compliant like this:
+
+```shell
+make lint
+```
+
+Which does the equivalent of these commands:
+
+```shell
+flake8 service tests --count --select=E9,F63,F7,F82 --show-source --statistics
+flake8 service tests --count --max-complexity=10 --max-line-length=127 --statistics
+pylint service tests --max-line-length=127
+```
+
+Visual Studio Code is configured to use `pylint` while you are editing. This catches a lot of errors while you code that would normally be caught at runtime. It's a good idea to always code with pylint active.
+
+## Running the service
+
+The project uses `honcho` which gets it's commands from the `Procfile`. To start the service simply use:
+
+```shell
+honcho start
+```
+
+As a convenience you can aso use:
+
+```shell
+make run
+```
+
+You should be able to reach the service at: http://localhost:8000. The port that is used is controlled by an environment variable defined in the `.flaskenv` file which Flask uses to load it's configuration from the environment by default.
+
+## Shutdown development 
+ironment
+
+If you are using Visual Studio Code with Docker, simply existing Visual Studio Code will stop the docker containers. They will start up again the next time you need to develop as long as you don't manually delete them.
+
+If you are using Vagrant and VirtualBox, when you are done, you can exit and shut down the vm with:
+
+```shell
+exit
+vagrant halt
+```
+
+If the VM is no longer needed you can remove it with:
+
+```shell
+vagrant destroy
+```
+
+## What's featured in the project?
+
+- `service/__init__.py` -- establishes the Flask app factory
+- `service/routes.py` -- the main Service routes using Python Flask
+- `service/models.py` -- the data model using SQLAlchemy
+- `tests/test_routes.py` -- test cases against the Customer service
+- `tests/test_models.py` -- test cases against the Customer model
 
 ## License
 
