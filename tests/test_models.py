@@ -22,9 +22,10 @@ Test cases for Customer Model
 import os
 import logging
 from unittest import TestCase
+from unittest.mock import patch
 from wsgi import app
 from service.models import Customer, DataValidationError, db
-from .factories import CustomerFactory
+from .factories import CustomerFactory, BadCustomerFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -67,6 +68,13 @@ class TestCustomer(TestCase):
     # C U S T O M E R   T E S T   C A S E S
     ######################################################################
 
+    def test_repr(self):
+        """It should return customer name and id"""
+        customer = CustomerFactory()
+        customer.create()
+        test = customer.__repr__()
+        self.assertEqual(test, f"<Customer {customer.name} id=[{customer.id}]>")
+
     def test_create_customer(self):
         """It should create a Customer"""
         customer = CustomerFactory()
@@ -81,6 +89,12 @@ class TestCustomer(TestCase):
         self.assertEqual(data.address, customer.address)
         self.assertEqual(data.email, customer.email)
         self.assertEqual(data.active, customer.active)
+
+        bad_customer = BadCustomerFactory()
+        try:
+            bad_customer.create()
+        except DataValidationError:
+            pass
 
     def test_read_a_customer(self):
         """It should Read a Customer"""
@@ -119,12 +133,34 @@ class TestCustomer(TestCase):
         self.assertEqual(customers[0].id, original_id)
         self.assertEqual(customers[0].address, "123 Main St, Springfield, IL 62701")
 
+        customer.active = "not a boolean"  # should not work
+        try:
+            customer.update()
+        except DataValidationError:
+            pass
+
     def test_update_no_id(self):
         """It should not Update a Customer with no id"""
         customer = CustomerFactory()
         logging.debug(customer)
         customer.id = None
         self.assertRaises(DataValidationError, customer.update)
+
+    def test_delete_a_customer(self):
+        """It should Delete a Customer"""
+        customer = CustomerFactory()
+        customer.create()
+        self.assertEqual(len(Customer.all()), 1)
+        # delete the customer and make sure it isn't in the database
+        customer.delete()
+        self.assertEqual(len(Customer.all()), 0)
+
+    @patch("service.models.db.session.commit")
+    def test_delete_raises_exception(self, mock_delete):
+        """It should raise an exception if delete fails"""
+        mock_delete.side_effect = Exception()
+        customer = CustomerFactory()
+        self.assertRaises(DataValidationError, customer.delete)
 
     def test_list_all_customers(self):
         """It should List all Customers in the database"""
@@ -137,3 +173,10 @@ class TestCustomer(TestCase):
         # See if we get back 5 customers
         customers = Customer.all()
         self.assertEqual(len(customers), 5)
+
+    def test_find_customer_by_name(self):
+        """It should list all customers with the queried name"""
+        customer = CustomerFactory()
+        customer.create()
+        found_customer = Customer.find_by_name(customer.name)
+        self.assertEqual(customer.id, found_customer[0].id)
