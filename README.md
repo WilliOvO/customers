@@ -6,7 +6,7 @@
 ## Introduction
 
 We are asked to develop the backend for an eCommerce website as a collection of RESTful services for a client. We are responsible for implementing the customer service
-The customer service is a representation of the customer accounts of the eCommerce site. At a minimum, it should have the customer's first and last name, along with a customer id that can be used as a key to uniquely identify them. It may even have a user ID and password. It's up to you. Customers also have at least one address, which can be just a long string.
+The customer service is a representation of the customer accounts of the eCommerce site. At a minimum, it should have the customer's first and last name, along with a customer id that can be used as a key to uniquely identify them. It may even have a user ID and password. Customers also have at least one address, which can be just a long string.
 
 ## Prerequisite Software Installation
 
@@ -23,6 +23,20 @@ All of these can be installed manually by clicking on the links above or you can
 Alternately, you can use [Vagrant](https://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/) to create a consistent development environment in a virtual machine (VM). 
 
 You can read more about creating these environments in my article: [Creating Reproducible Development Environments](https://johnrofrano.medium.com/creating-reproducible-development-environments-fac8d6471f35)
+
+## Information about RESTful endpoints
+``` These are the RESTful endpoints for customers 
+
+Endpoint          Methods  Rule
+----------------  -------  -----------------------------------------------------
+index             GET      /
+
+list_customers      GET      /customers
+create_customer     POST     /customers
+read_customer       GET      /customers/<int:customer_id>
+update_customer     PUT      /customers/<int:customer_id>
+delete_customer     DELETE   /customers/<int:customer_id>
+```
 
 ## Bring up the development environment
 
