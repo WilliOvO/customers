@@ -33,8 +33,13 @@ from service.common import status  # HTTP Status Codes
 @app.route("/")
 def index():
     """Root URL response"""
+    app.logger.info("Request for Root URL")
     return (
-        "Reminder: return some useful information in json format about the service here",
+        jsonify(
+            name="Customer REST API Service",
+            version="1.0",
+            paths=url_for("list_customers", _external=True),
+        ),
         status.HTTP_200_OK,
     )
 
@@ -48,6 +53,7 @@ def index():
 ######################################################################
 # LIST ALL CUSTOMERS
 ######################################################################
+
 
 @app.route("/customers", methods=["GET"])
 def list_customers():
@@ -78,10 +84,13 @@ def list_customers():
     elif active is not None:
         app.logger.info("Find by active: %s", active)
         # create bool
-        if active.lower() == "true": active_value = True
-        elif active.lower() == "false": active_value = False
-        else: abort(400, description="Invalid value")
-        customers = Customer.find_by_active(active_value)  
+        if active.lower() == "true":
+            active_value = True
+        elif active.lower() == "false":
+            active_value = False
+        else:
+            abort(400, description="Invalid value")
+        customers = Customer.find_by_active(active_value)
     else:
         app.logger.info("Find all")
         customers = Customer.all()
@@ -89,6 +98,7 @@ def list_customers():
     results = [customer.serialize() for customer in customers]
     app.logger.info("Returning %d customers", len(results))
     return jsonify(results), status.HTTP_200_OK
+
 
 ######################################################################
 # CREATE A NEW CUSTOMER
@@ -178,7 +188,6 @@ def update_customers(customer_id):
 
     app.logger.info("Customer with ID: %d updated.", customer.id)
     return jsonify(customer.serialize()), status.HTTP_200_OK
-
 
 
 ######################################################################
