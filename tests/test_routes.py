@@ -32,6 +32,7 @@ DATABASE_URI = os.getenv(
 )
 BASE_URL = "/customers"
 
+
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
@@ -177,7 +178,9 @@ class TestCustomerService(TestCase):
         new_customer = response.get_json()
         logging.debug(new_customer)
         new_customer["address"] = "unknown"
-        response = self.client.put(f"{BASE_URL}/{new_customer['id']}", json=new_customer)
+        response = self.client.put(
+            f"{BASE_URL}/{new_customer['id']}", json=new_customer
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         updated_customer = response.get_json()
         self.assertEqual(updated_customer["address"], "unknown")
@@ -185,3 +188,18 @@ class TestCustomerService(TestCase):
     # ----------------------------------------------------------
     # TEST DELETE
     # ----------------------------------------------------------
+    def test_delete_customer(self):
+        """It should Delete a Customer"""
+        test_customer = self._create_customers(1)[0]
+        response = self.client.delete(f"{BASE_URL}/{test_customer.id}")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(response.data), 0)
+        # make sure they are deleted
+        response = self.client.get(f"{BASE_URL}/{test_customer.id}")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_non_existing_customer(self):
+        """It should Delete a Customer even if it doesn't exist"""
+        response = self.client.delete(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(response.data), 0)
