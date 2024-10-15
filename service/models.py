@@ -138,3 +138,33 @@ class Customer(db.Model):
         """
         logger.info("Processing name query for %s ...", name)
         return cls.query.filter(cls.name == name)
+
+    @classmethod
+    def find_by_active(cls, active):
+        """Returns all Customers with the given active status
+
+        Args:
+            active (bool): the active status of the Customers you want to match
+        """
+        logger.info("Processing active query for %s ...", active)
+        return cls.query.filter(cls.active == active)
+
+    @classmethod
+    def find_by_address(cls, address):
+        """Returns all Customers with the given address
+
+        Args:
+            address (string): the address of the Customers you want to match
+        """
+        logger.info("Processing address query for %s ...", address)
+        return cls.query.filter(cls.address == address)
+
+    @classmethod
+    def find_by_email(cls, email):
+        """Returns all Customers with the given email
+
+        Args:
+            email (string): the email of the Customers you want to match
+        """
+        logger.info("Processing email query for %s ...", email)
+        return cls.query.filter(cls.email == email)
