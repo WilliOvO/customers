@@ -24,8 +24,10 @@ import logging
 from unittest import TestCase
 from wsgi import app
 from service.common import status
-from service.models import db, Customer
+from service.models import db, Customer, DataValidationError
 from .factories import CustomerFactory
+from urllib.parse import quote_plus
+from unittest.mock import patch
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -187,6 +189,14 @@ class TestCustomerService(TestCase):
         updated_customer = response.get_json()
         self.assertEqual(updated_customer["address"], "unknown")
 
+    def test_update_customer_not_found(self):
+        """It should not Update a Customer thats not found"""
+        response = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        logging.debug("Response data = %s", data)
+        self.assertIn("was not found", data["message"])
+
     # ----------------------------------------------------------
     # TEST DELETE
     # ----------------------------------------------------------
@@ -205,3 +215,121 @@ class TestCustomerService(TestCase):
         response = self.client.delete(f"{BASE_URL}/0")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(response.data), 0)
+
+    # ----------------------------------------------------------
+    # TEST QUERY
+    # ----------------------------------------------------------
+    def test_query_by_name(self):
+        """It should Query Customers by name"""
+        customers = self._create_customers(5)
+        test_name = customers[0].name
+        name_count = len([customer for customer in customers if customer.name == test_name])
+        response = self.client.get(
+            BASE_URL, query_string=f"name={quote_plus(test_name)}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), name_count)
+        # check the data just to be sure
+        for customer in data:
+            self.assertEqual(customer["name"], test_name)
+
+    def test_query_by_email(self):
+        """It should Query Customers by email"""
+        customers = self._create_customers(5)
+        test_email = customers[0].email
+        name_count = len([customer for customer in customers if customer.email == test_email])
+        response = self.client.get(
+            BASE_URL, query_string=f"email={quote_plus(test_email)}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), name_count)
+        # check the data just to be sure
+        for customer in data:
+            self.assertEqual(customer["email"], test_email)
+
+    def test_query_customer_list_by_address(self):
+        """It should Query Customers by Category"""
+        customers = self._create_customers(10)
+        test_address = customers[0].address
+        address_customers = [customer for customer in customers if customer.address == test_address]
+        response = self.client.get(
+            BASE_URL, query_string=f"address={quote_plus(test_address)}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), len(address_customers))
+        # check the data just to be sure
+        for customer in data:
+            self.assertEqual(customer["address"], test_address)
+
+    def test_query_by_activeness(self):
+        """It should Query Customers by activeness"""
+        customers = self._create_customers(10)
+        active_customers = [customer for customer in customers if customer.active is True]
+        inactive_customers = [customer for customer in customers if customer.active is False]
+        active_count = len(active_customers)
+        inactive_count = len(inactive_customers)
+        logging.debug("Available Customers [%d] %s", active_count, active_customers)
+        logging.debug("Inactive Customers [%d] %s", inactive_count, inactive_customers)
+
+        # test for active
+        response = self.client.get(BASE_URL, query_string="active=true")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), active_count)
+        # check the data just to be sure
+        for customer in data:
+            self.assertEqual(customer["active"], True)
+
+        # test for inactive
+        response = self.client.get(BASE_URL, query_string="active=false")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), inactive_count)
+        # check the data just to be sure
+        for customer in data:
+            self.assertEqual(customer["active"], False)
+
+
+######################################################################
+#  T E S T   S A D   P A T H S
+######################################################################
+class TestSadPaths(TestCase):
+    """Test REST Exception Handling"""
+
+    def setUp(self):
+        """Runs before each test"""
+        self.client = app.test_client()
+
+    def test_method_not_allowed(self):
+        """It should not allow update without a customer id"""
+        response = self.client.put(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_create_customer_no_data(self):
+        """It should not Create a Customer with missing data"""
+        response = self.client.post(BASE_URL, json={})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_customer_no_content_type(self):
+        """It should not Create a Customer with no content type"""
+        response = self.client.post(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    def test_create_customer_wrong_content_type(self):
+        """It should not Create a Customer with the wrong content type"""
+        response = self.client.post(BASE_URL, data="hello", content_type="text/html")
+        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    ######################################################################
+    #  T E S T   M O C K S
+    ######################################################################
+
+    @patch("service.routes.Customer.find_by_name")
+    def test_bad_request(self, bad_request_mock):
+        """It should return a Bad Request error from Find By Name"""
+        bad_request_mock.side_effect = DataValidationError()
+        response = self.client.get(BASE_URL, query_string="name=fido")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
