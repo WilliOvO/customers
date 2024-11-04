@@ -48,7 +48,6 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
-# Todo: Place your REST API code here ...
 
 ######################################################################
 # LIST ALL CUSTOMERS
@@ -84,6 +83,7 @@ def list_customers():
     elif active is not None:
         app.logger.info("Find by active: %s", active)
         # create bool
+        active_value = None
         if active.lower() == "true":
             active_value = True
         elif active.lower() == "false":

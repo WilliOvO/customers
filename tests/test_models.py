@@ -72,7 +72,7 @@ class TestCustomer(TestCase):
         """It should return customer name and id"""
         customer = CustomerFactory()
         customer.create()
-        test = customer.__repr__()
+        test = repr(customer)
         self.assertEqual(test, f"<Customer {customer.name} id=[{customer.id}]>")
 
     def test_create_customer(self):

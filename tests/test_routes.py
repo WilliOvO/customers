@@ -22,12 +22,13 @@ TestCustomer API Service Test Suite
 import os
 import logging
 from unittest import TestCase
+from unittest.mock import patch
+from urllib.parse import quote_plus
 from wsgi import app
 from service.common import status
 from service.models import db, Customer, DataValidationError
 from .factories import CustomerFactory
-from urllib.parse import quote_plus
-from unittest.mock import patch
+
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -223,7 +224,9 @@ class TestCustomerService(TestCase):
         """It should Query Customers by name"""
         customers = self._create_customers(5)
         test_name = customers[0].name
-        name_count = len([customer for customer in customers if customer.name == test_name])
+        name_count = len(
+            [customer for customer in customers if customer.name == test_name]
+        )
         response = self.client.get(
             BASE_URL, query_string=f"name={quote_plus(test_name)}"
         )
@@ -238,7 +241,9 @@ class TestCustomerService(TestCase):
         """It should Query Customers by email"""
         customers = self._create_customers(5)
         test_email = customers[0].email
-        name_count = len([customer for customer in customers if customer.email == test_email])
+        name_count = len(
+            [customer for customer in customers if customer.email == test_email]
+        )
         response = self.client.get(
             BASE_URL, query_string=f"email={quote_plus(test_email)}"
         )
@@ -253,7 +258,9 @@ class TestCustomerService(TestCase):
         """It should Query Customers by Category"""
         customers = self._create_customers(10)
         test_address = customers[0].address
-        address_customers = [customer for customer in customers if customer.address == test_address]
+        address_customers = [
+            customer for customer in customers if customer.address == test_address
+        ]
         response = self.client.get(
             BASE_URL, query_string=f"address={quote_plus(test_address)}"
         )
@@ -267,8 +274,12 @@ class TestCustomerService(TestCase):
     def test_query_by_activeness(self):
         """It should Query Customers by activeness"""
         customers = self._create_customers(10)
-        active_customers = [customer for customer in customers if customer.active is True]
-        inactive_customers = [customer for customer in customers if customer.active is False]
+        active_customers = [
+            customer for customer in customers if customer.active is True
+        ]
+        inactive_customers = [
+            customer for customer in customers if customer.active is False
+        ]
         active_count = len(active_customers)
         inactive_count = len(inactive_customers)
         logging.debug("Available Customers [%d] %s", active_count, active_customers)
