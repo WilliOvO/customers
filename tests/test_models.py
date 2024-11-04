@@ -180,21 +180,21 @@ class TestCustomer(TestCase):
         customer.create()
         found_customer = Customer.find_by_name(customer.name)
         self.assertEqual(customer.id, found_customer[0].id)
-    
+
     def test_find_customer_by_email(self):
         """It should list all customers with the queried email"""
         customer = CustomerFactory()
         customer.create()
         found_customer = Customer.find_by_email(customer.email)
         self.assertEqual(customer.id, found_customer[0].id)
-    
+
     def test_find_customer_by_address(self):
         """It should list all customers with the queried address"""
         customer = CustomerFactory()
         customer.create()
         found_customer = Customer.find_by_address(customer.address)
         self.assertEqual(customer.id, found_customer[0].id)
-    
+
     def test_find_customer_by_active(self):
         """It should list all customers with the queried active status"""
         customer = CustomerFactory()
