@@ -62,16 +62,12 @@ def list_customers():
     customers = []
 
     # Parse any arguments from the query string
-    customer_id = request.args.get("customer")
     name = request.args.get("name")
     email = request.args.get("email")
     address = request.args.get("address")
     active = request.args.get("active")
 
-    if customer_id:
-        app.logger.info("Find by id: %s", customer_id)
-        customers = Customer.find_by_id(customer_id)
-    elif name:
+    if name:
         app.logger.info("Find by name: %s", name)
         customers = Customer.find_by_name(name)
     elif email:

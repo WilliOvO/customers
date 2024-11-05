@@ -339,8 +339,29 @@ class TestSadPaths(TestCase):
     ######################################################################
 
     @patch("service.routes.Customer.find_by_name")
-    def test_bad_request(self, bad_request_mock):
+    def test_bad_request_name(self, bad_request_mock):
         """It should return a Bad Request error from Find By Name"""
         bad_request_mock.side_effect = DataValidationError()
         response = self.client.get(BASE_URL, query_string="name=fido")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("service.routes.Customer.find_by_email")
+    def test_bad_request_email(self, bad_request_mock):
+        """It should return a Bad Request error from Find By Email"""
+        bad_request_mock.side_effect = DataValidationError()
+        response = self.client.get(BASE_URL, query_string="email=fido")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("service.routes.Customer.find_by_address")
+    def test_bad_request_address(self, bad_request_mock):
+        """It should return a Bad Request error from Find By Address"""
+        bad_request_mock.side_effect = DataValidationError()
+        response = self.client.get(BASE_URL, query_string="address=fido")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("service.routes.Customer.find_by_active")
+    def test_bad_request_active(self, bad_request_mock):
+        """It should return a Bad Request error from Find By Active"""
+        bad_request_mock.side_effect = DataValidationError()
+        response = self.client.get(BASE_URL, query_string="active=fido")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
