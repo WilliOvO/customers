@@ -303,6 +303,28 @@ class TestCustomerService(TestCase):
         for customer in data:
             self.assertEqual(customer["active"], False)
 
+    # ----------------------------------------------------------
+    # TEST ACTIONS
+    # ----------------------------------------------------------
+    def test_deactivate_customer(self):
+        """It should Deactivate a Customer account"""
+        customer = CustomerFactory()
+        logging.debug("Test Customer: %s", customer.serialize())
+        response = self.client.post(BASE_URL, json=customer.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.put(f"{BASE_URL}/{customer.id}/deactivate")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(f"{BASE_URL}/{customer.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        logging.debug("Response data: %s", data)
+        self.assertEqual(data["active"], False)
+
+        bad_customer = CustomerFactory()
+        response = self.client.put(f"{BASE_URL}/{bad_customer.id}/deactivate")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 ######################################################################
 #  T E S T   S A D   P A T H S
