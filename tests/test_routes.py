@@ -356,6 +356,11 @@ class TestSadPaths(TestCase):
         response = self.client.post(BASE_URL, data="hello", content_type="text/html")
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
+    def test_find_customer_not_found(self):
+        """It should return a 404 error if customer is not found"""
+        response = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     ######################################################################
     #  T E S T   M O C K S
     ######################################################################
